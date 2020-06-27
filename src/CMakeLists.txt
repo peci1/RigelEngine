@@ -2,6 +2,8 @@ set(core_sources
     base/array_view.hpp
     base/container_utils.hpp
     base/grid.hpp
+    base/logging.cpp
+    base/logging.hpp
     base/math_tools.hpp
     base/spatial_types.hpp
     base/warnings.hpp
@@ -311,6 +313,7 @@ target_link_libraries(rigel_core
     dear_imgui
     imgui-filebrowser
     glad
+    spdlog::spdlog
 
     PRIVATE
     std::filesystem

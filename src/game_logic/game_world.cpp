@@ -16,6 +16,7 @@
 
 #include "game_world.hpp"
 
+#include "base/logging.hpp"
 #include "common/game_service_provider.hpp"
 #include "common/user_profile.hpp"
 #include "data/game_options.hpp"
@@ -37,8 +38,6 @@
 #include "ui/utils.hpp"
 
 #include <cassert>
-#include <chrono>
-#include <iostream>
 
 
 namespace rigel::game_logic {
@@ -279,6 +278,10 @@ GameWorld::GameWorld(
   , mMessageDisplay(mpServiceProvider, context.mpUiRenderer)
   , mpOptions(&context.mpUserProfile->mOptions)
 {
+  base::log(
+    "Loading level '{}' ...",
+    levelFileName(sessionId.mEpisode, sessionId.mLevel));
+
   mEventManager.subscribe<rigel::events::CheckPointActivated>(*this);
   mEventManager.subscribe<rigel::events::ExitReached>(*this);
   mEventManager.subscribe<rigel::events::PlayerDied>(*this);
@@ -291,9 +294,6 @@ GameWorld::GameWorld(
   mEventManager.subscribe<rigel::game_logic::events::ShootableKilled>(*this);
   mEventManager.subscribe<rigel::events::BossActivated>(*this);
   mEventManager.subscribe<rigel::events::BossDestroyed>(*this);
-
-  using namespace std::chrono;
-  auto before = high_resolution_clock::now();
 
   loadLevel(sessionId, *context.mpResources);
 
@@ -317,9 +317,7 @@ GameWorld::GameWorld(
     mMessageDisplay.setMessage(data::Messages::FindAllRadars);
   }
 
-  auto after = high_resolution_clock::now();
-  std::cout << "Level load time: " <<
-    duration<double>(after - before).count() * 1000.0 << " ms\n";
+  base::log("  >> success");
 }
 
 

@@ -16,6 +16,7 @@
 
 #include "user_profile.hpp"
 
+#include "base/logging.hpp"
 #include "base/warnings.hpp"
 #include "common/json_utils.hpp"
 #include "loader/file_utils.hpp"
@@ -26,7 +27,6 @@ RIGEL_DISABLE_WARNINGS
 #include <SDL_filesystem.h>
 RIGEL_RESTORE_WARNINGS
 
-#include <iostream>
 #include <fstream>
 
 
@@ -378,8 +378,8 @@ UserProfile loadProfile(
 
     return profile;
   } catch (const std::exception& ex) {
-    std::cerr << "WARNING: Failed to load user profile\n";
-    std::cerr << ex.what() << '\n';
+    base::logError("Failed to load user profile:");
+    base::logError("{}", ex.what());
   }
 
   return UserProfile{pathForSaving};
@@ -446,8 +446,9 @@ void UserProfile::saveToDisk() {
   const auto buffer = json::to_msgpack(serializedProfile);
   try {
     loader::saveToFile(buffer, *mProfilePath);
-  } catch (const std::exception&) {
-    std::cerr << "WARNING: Failed to store user profile\n";
+  } catch (const std::exception& ex) {
+    base::logError("Failed to store user profile:");
+    base::logError("{}", ex.what());
   }
 }
 
@@ -493,7 +494,7 @@ UserProfile createEmptyUserProfile()
 {
   const auto preferencesPath = createOrGetPreferencesPath();
   if (!preferencesPath) {
-    std::cerr << "WARNING: Cannot open user preferences directory\n";
+    base::logError("Cannot open user preferences directory");
     return {};
   }
 
@@ -509,7 +510,7 @@ std::optional<UserProfile> loadUserProfile()
 
   const auto preferencesPath = createOrGetPreferencesPath();
   if (!preferencesPath) {
-    std::cerr << "WARNING: Cannot open user preferences directory\n";
+    base::logError("Cannot open user preferences directory");
     return {};
   }
 

@@ -17,6 +17,7 @@
 #include "game_main.hpp"
 #include "game_main.ipp"
 
+#include "base/logging.hpp"
 #include "base/math_tools.hpp"
 #include "data/duke_script.hpp"
 #include "data/game_traits.hpp"
@@ -274,13 +275,18 @@ std::string effectiveGamePath(
 
 
 UserProfile loadOrCreateUserProfile() {
+  base::log("Opening user profile...");
+
   if (auto profile = loadUserProfile())
   {
+    base::log("  >> profile loaded");
     return *profile;
   }
 
+  base::log(" >> no profile found, creating new profile...");
   auto profile = createEmptyUserProfile();
   profile.saveToDisk();
+  base::log("  >> success");
   return profile;
 }
 
@@ -437,36 +443,56 @@ void initAndRunGame(
 
 
 void gameMain(const CommandLineOptions& options) {
+  if (auto path = createOrGetPreferencesPath()) {
+    base::initLogging((*path / "log.txt").u8string());
+  }
+
 #ifdef _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
   SetProcessDPIAware();
 #endif
 
+  base::log("Initializing SDL...");
   sdl_utils::check(SDL_Init(
     SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER));
   auto sdlGuard = defer([]() { SDL_Quit(); });
+  base::log("  >> success");
 
+  base::log("Loading OpenGL library...");
   sdl_utils::check(SDL_GL_LoadLibrary(nullptr));
+  base::log("  >> success");
+
   setGLAttributes();
 
   auto userProfile = loadOrCreateUserProfile();
+
+  base::log("Creating window...");
   auto pWindow = createWindow(userProfile.mOptions);
+  base::log("  >> success");
+
+  base::log("Creating OpenGL context...");
   SDL_GLContext pGlContext =
     sdl_utils::check(SDL_GL_CreateContext(pWindow.get()));
   auto glGuard = defer([pGlContext]() { SDL_GL_DeleteContext(pGlContext); });
+  base::log("  >> success");
 
+  base::log("Loading OpenGL functions...");
   renderer::loadGlFunctions();
+  base::log("  >> success");
 
   SDL_DisableScreenSaver();
   SDL_ShowCursor(SDL_DISABLE);
 
+  base::log("Initializing Dear ImGui...");
   ui::imgui_integration::init(
     pWindow.get(), pGlContext, createOrGetPreferencesPath());
   auto imGuiGuard = defer([]() { ui::imgui_integration::shutdown(); });
+  base::log("  >> success");
 
   try {
     initAndRunGame(pWindow.get(), userProfile, options);
   } catch (const std::exception& error) {
+    base::logError("Error: {}", error.what());
     showErrorMessage(pWindow.get(), error.what());
   }
 }
@@ -540,9 +566,11 @@ auto Game::run() -> RunResult {
   mRenderer.clear();
   mRenderer.swapBuffers();
 
+  base::log("Loading sound effects...");
   data::forEachSoundId([this](const auto id) {
     mSoundsById.emplace_back(mSoundSystem.addSound(mResources.loadSound(id)));
   });
+  base::log("  >> success");
 
   applyChangedOptions();
 
@@ -820,6 +848,8 @@ void Game::enumerateGameControllers() {
   // TODO : support multiple controllers.
   // At the moment, this opens only the first available controller.
 
+  base::log("Enumerating game controllers...");
+
   mpGameController.reset();
 
   for (std::uint8_t i = 0; i < SDL_NumJoysticks(); ++i) {
@@ -828,6 +858,14 @@ void Game::enumerateGameControllers() {
         sdl_utils::Ptr<SDL_GameController>{SDL_GameControllerOpen(i)};
       break;
     }
+  }
+
+  if (mpGameController) {
+    base::log(
+      "  >> Using game controller: {}",
+      SDL_GameControllerName(mpGameController.get()));
+  } else {
+    base::log("  >> No game controller found");
   }
 }
 
