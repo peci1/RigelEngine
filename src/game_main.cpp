@@ -374,16 +374,19 @@ void setupForFirstLaunch(
 
   // If we still don't have a game path, stop here.
   if (gamePath.empty()) {
-    throw std::runtime_error(
+    showErrorMessage(pWindow,
 R"(No game path given. RigelEngine needs the original Duke Nukem II data files in order to function.
 You can download the Shareware version for free, see
 https://github.com/lethal-guitar/RigelEngine/blob/master/README.md#acquiring-the-game-data
 for more info.)");
+    std::exit(-2);
   }
 
   // Make sure there is a data file at the game path.
   if (!fs::exists(gamePath / dataFilePath)) {
-    throw std::runtime_error("No game data (NUKEM2.CMP file) found in game path");
+    showErrorMessage(
+      pWindow, "No game data (NUKEM2.CMP file) found in game path");
+    std::exit(-2);
   }
 
   // Import original game's profile data, if our profile is still 'empty'
@@ -464,11 +467,7 @@ void gameMain(const CommandLineOptions& options) {
     pWindow.get(), pGlContext, createOrGetPreferencesPath());
   auto imGuiGuard = defer([]() { ui::imgui_integration::shutdown(); });
 
-  try {
-    initAndRunGame(pWindow.get(), userProfile, options);
-  } catch (const std::exception& error) {
-    showErrorMessage(pWindow.get(), error.what());
-  }
+  initAndRunGame(pWindow.get(), userProfile, options);
 }
 
 
