@@ -31,6 +31,7 @@ RIGEL_DISABLE_WARNINGS
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
+#include <SDL_messagebox.h>
 RIGEL_RESTORE_WARNINGS
 
 #include <iostream>
@@ -63,6 +64,11 @@ void showBanner() {
     "For details, see https://www.gnu.org/licenses/gpl-2.0.html\n"
     "================================================================================\n"
     "\n";
+}
+
+
+void showErrorBox(const char* message) {
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", message, nullptr);
 }
 
 
@@ -203,11 +209,13 @@ int main(int argc, char** argv) {
   }
   catch (const std::exception& ex)
   {
+    showErrorBox(ex.what());
     std::cerr << "ERROR: " << ex.what() << '\n';
     return -2;
   }
   catch (...)
   {
+    showErrorBox("Unknown error");
     std::cerr << "UNKNOWN ERROR\n";
     return -3;
   }
