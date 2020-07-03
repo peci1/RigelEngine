@@ -19,6 +19,7 @@
 #include "base/math_tools.hpp"
 #include "renderer/opengl.hpp"
 #include "ui/imgui_integration.hpp"
+#include "ui/menu_navigation.hpp"
 
 RIGEL_DISABLE_WARNINGS
 #include <imfilebrowser.h>
@@ -58,6 +59,10 @@ std::filesystem::path runFolderBrowser(SDL_Window* pWindow)
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+      if (ui::isCancelButton(event)) {
+        return {};
+      }
+
       ui::imgui_integration::handleEvent(event);
     }
 
@@ -86,6 +91,10 @@ void showErrorMessage(SDL_Window* pWindow, const std::string& error) {
 
   while (boxIsVisible) {
     while (SDL_PollEvent(&event)) {
+      if (ui::isCancelButton(event)) {
+        return;
+      }
+
       ui::imgui_integration::handleEvent(event);
     }
 
