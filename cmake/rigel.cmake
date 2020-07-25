@@ -55,10 +55,13 @@ function(rigel_configure_compiler_warnings)
             -Wno-switch-enum
             -Wno-unused-parameter
             -Wno-unused-lambda-capture
+            -Wno-unused-private-field
             -Wno-weak-vtables
             -Wno-global-constructors
             -Wno-float-equal
             -Wno-double-promotion
+            -Wno-ctad-maybe-unsupported
+            -Wno-implicit-int-float-conversion
         )
 
         if (WARNINGS_AS_ERRORS)
