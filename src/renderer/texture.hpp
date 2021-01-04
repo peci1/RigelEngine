@@ -60,10 +60,10 @@ public:
   Texture& operator=(const Texture&) = delete;
 
   /** Render entire texture at given position */
-  void render(Renderer* renderer, const base::Vector& position) const;
+  void render(const base::Vector& position) const;
 
   /** Render entire texture at given position */
-  void render(Renderer* renderer, int x, int y) const;
+  void render(int x, int y) const;
 
   /** Render a part of the texture at given position
    *
@@ -72,16 +72,10 @@ public:
    * texture.
    */
   void render(
-    Renderer* renderer,
-    const base::Vector& position,
-    const base::Rect<int>& sourceRect
-  ) const;
+    const base::Vector& position, const base::Rect<int>& sourceRect) const;
 
   /** Render entire texture scaled to fill the given rectangle */
-  void renderScaled(
-    Renderer* renderer,
-    const base::Rect<int>& destRect
-  ) const;
+  void renderScaled(const base::Rect<int>& destRect) const;
 
   int width() const {
     return mWidth;
@@ -108,11 +102,7 @@ protected:
   {
   }
 
-  void render(
-    Renderer* renderer,
-    int x,
-    int y,
-    const base::Rect<int>& sourceRect) const;
+  void render(int x, int y, const base::Rect<int>& sourceRect) const;
 
   Renderer* mpRenderer = nullptr;
   TextureId mId = 0;
